@@ -72,7 +72,7 @@ jobs:
       # AnyKernel time
       - name: Pack
         run: |
-          ZIPNAME2="BlueFly_2.0_a51.zip"
+          ZIPNAME1="BlueFly_2.0_a51.zip"
           ZIPNAME2="BlueFly_2.0_m31.zip"
           cd ~
           git clone https://github.com/hdr-mn/AnyKernel3 -b exynos9611 && cd AnyKernel3
@@ -90,7 +90,7 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }} 
         run: |
-          cd ~/AnyKernel
+          cd ~/AnyKernel3
           for i in *.zip; do
           curl -F chat_id=$CHAT_ID -F document=@$i -F parse_mode=markdown https://api.telegram.org/bot$BOT_TOKEN/sendDocument
           done
