@@ -79,10 +79,10 @@ jobs:
           cp ~/kernel/a51/arch/arm64/boot/Image .
           cp ~/kernel/dtb .
           cp ~/kernel/dtbo-a51.img dtbo
-          zip -r9 $ZIPNAME1 * -x .git README.md *placeholder
+          zip -r9 $ZIPNAME1 * -x .git README.md *placeholder *.zip
           cp ~/kernel/m31/arch/arm64/boot/Image .
           cp ~/kernel/dtbo-m31.img dtbo
-          zip -r9 $ZIPNAME2 * -x .git README.md *placeholder
+          zip -r9 $ZIPNAME2 * -x .git README.md *placeholder *.zip
 
       # Upload to TG
       - name: Upload
