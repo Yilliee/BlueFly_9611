@@ -1190,16 +1190,18 @@ static int tas2562_dac_mute_ctrl_put(struct snd_kcontrol *pKcontrol,
 	else
 		chn = channel_left;
 
-	if (mute) {
-		n_result = p_tas2562->update_bits(p_tas2562, chn,
-		TAS2562_POWERCONTROL,
-		TAS2562_POWERCONTROL_OPERATIONALMODE10_MASK,
-		TAS2562_POWERCONTROL_OPERATIONALMODE10_MUTE);
-	} else {
-		n_result = p_tas2562->update_bits(p_tas2562, chn,
-		TAS2562_POWERCONTROL,
-		TAS2562_POWERCONTROL_OPERATIONALMODE10_MASK,
-		TAS2562_POWERCONTROL_OPERATIONALMODE10_ACTIVE);
+	if (p_tas2562->mn_power_state == TAS2562_POWER_ACTIVE) {
+		if (mute) {
+			n_result = p_tas2562->update_bits(p_tas2562, chn,
+			TAS2562_POWERCONTROL,
+			TAS2562_POWERCONTROL_OPERATIONALMODE10_MASK,
+			TAS2562_POWERCONTROL_OPERATIONALMODE10_MUTE);
+		} else {
+			n_result = p_tas2562->update_bits(p_tas2562, chn,
+			TAS2562_POWERCONTROL,
+			TAS2562_POWERCONTROL_OPERATIONALMODE10_MASK,
+			TAS2562_POWERCONTROL_OPERATIONALMODE10_ACTIVE);
+		}
 	}
 
         p_tas2562->dac_mute = mute;

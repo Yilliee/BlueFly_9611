@@ -726,13 +726,21 @@ static void irq_work_routine(struct work_struct *work)
 				TAS2562_LATCHEDINTERRUPTREG0, &irqreg);
 			dev_info(p_tas2562->dev, "IRQ reg is: %s %d, %d\n",
 				__func__, irqreg, __LINE__);
-
-			n_result = p_tas2562->update_bits(p_tas2562,
-				chn, TAS2562_POWERCONTROL,
-				TAS2562_POWERCONTROL_OPERATIONALMODE10_MASK,
-				TAS2562_POWERCONTROL_OPERATIONALMODE10_ACTIVE);
-			if (n_result < 0)
-				goto reload;
+			if (p_tas2562->dac_mute == 0) {
+				n_result = p_tas2562->update_bits(p_tas2562,
+					chn, TAS2562_POWERCONTROL,
+					TAS2562_POWERCONTROL_OPERATIONALMODE10_MASK,
+					TAS2562_POWERCONTROL_OPERATIONALMODE10_ACTIVE);
+				if (n_result < 0)
+					goto reload;
+			} else {
+				n_result = p_tas2562->update_bits(p_tas2562,
+					chn, TAS2562_POWERCONTROL,
+					TAS2562_POWERCONTROL_OPERATIONALMODE10_MASK,
+					TAS2562_POWERCONTROL_OPERATIONALMODE10_MUTE);
+				if (n_result < 0)
+					goto reload;
+			}
 
 			dev_info(p_tas2562->dev, "set ICN to -80dB\n");
 			n_result = p_tas2562->bulk_write(p_tas2562, chn,
