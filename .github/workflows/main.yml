@@ -6,7 +6,7 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the BlueFly branch
   push:
-    branches: [ BlueFly ]
+    branches: [ BlueFly_A12 ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -53,44 +53,47 @@ jobs:
           cd ~/kernel
           export ARCH=arm64
           make clean && make mrproper
-          make bluefly_a51_defconfig O=a51
-          make bluefly_m31_defconfig O=m31
+          make bluefly-a51_defconfig O=a51
+          make bluefly-m21_defconfig O=m21
+          make bluefly-m31s_defconfig O=m31s
           make -j$(nproc --all) CROSS_COMPILE=$HOME/toolchain/bin/aarch64-linux-android- CC=$HOME/clang/bin/clang CLANG_TRIPLE=aarch64-linux-gnu- O=a51
-          make -j$(nproc --all) CROSS_COMPILE=$HOME/toolchain/bin/aarch64-linux-android- CC=$HOME/clang/bin/clang CLANG_TRIPLE=aarch64-linux-gnu- O=m31
+          make -j$(nproc --all) CROSS_COMPILE=$HOME/toolchain/bin/aarch64-linux-android- CC=$HOME/clang/bin/clang CLANG_TRIPLE=aarch64-linux-gnu- O=m21
+          make -j$(nproc --all) CROSS_COMPILE=$HOME/toolchain/bin/aarch64-linux-android- CC=$HOME/clang/bin/clang CLANG_TRIPLE=aarch64-linux-gnu- O=m31s
 
       # Create dtb(o) cfg
       - name: Build dtbo & add CFG entry
         run: |
           cd ~/kernel
-          cp a51/arch/arm64/boot/dts/exynos/exynos9610.dtb . # use a51 for dtb, but basically same
-          python scripts/mkdtboimg.py create dtbo-m31.img m31/arch/arm64/boot/dts/samsung/*.dtbo
-          python scripts/mkdtboimg.py create dtbo-a51.img a51/arch/arm64/boot/dts/samsung/*.dtbo
-          python scripts/mkdtboimg.py cfg_create dtb dtbcfg/exynos9610.cfg --dtb-dir a51/arch/arm64/boot/dts/exynos/
-          python scripts/mkdtboimg.py cfg_create dtbo-a51.img dtbcfg/a51.cfg --dtb-dir a51/arch/arm64/boot/dts/samsung/
-          python scripts/mkdtboimg.py cfg_create dtbo-m31.img dtbcfg/m31.cfg --dtb-dir m31/arch/arm64/boot/dts/samsung/
+          python scripts/mkdtboimg.py cfg_create dtb cfgs/exynos9610.cfg --dtb-dir a51/arch/arm64/boot/dts/exynos/
+          python scripts/mkdtboimg.py cfg_create dtbo-a51.img cfgs/a51.cfg --dtb-dir a51/arch/arm64/boot/dts/samsung/
+          python scripts/mkdtboimg.py cfg_create dtbo-m21.img cfgs/m21.cfg --dtb-dir m21/arch/arm64/boot/dts/samsung/
+          python scripts/mkdtboimg.py cfg_create dtbo-m31s.img cfgs/m31s.cfg --dtb-dir m31s/arch/arm64/boot/dts/samsung/
 
       # AnyKernel time
       - name: Pack
         run: |
-          ZIPNAME1="BlueFly_2.0_a51.zip"
-          ZIPNAME2="BlueFly_2.0_m31.zip"
+          ZIPNAME1="BlueFly_3.0_a51.zip"
+          ZIPNAME2="BlueFly_3.0_m21.zip"
+          ZIPNAME2="BlueFly_3.0_m31s.zip"
           cd ~
-          git clone https://github.com/hdr-mn/AnyKernel3 -b exynos9611 && cd AnyKernel3
+          git clone https://github.com/Yilliee/KernelFlasher -b Standard && cd KernelFlasher
+          sed -i "s/{printl1txt}/BlueFly 3.0 DeadBeat/g" META-INF/com/google/android/update-binary
+          sed -i "s/{printl2txt}/Originally by : @hendralize/g" META-INF/com/google/android/update-binary
+          sed -i "s/{printl1txt}/Revived by Yillié/g" META-INF/com/google/android/update-binary
           cp ~/kernel/a51/arch/arm64/boot/Image .
           cp ~/kernel/dtb .
           cp ~/kernel/dtbo-a51.img dtbo
-          zip -r9 $ZIPNAME1 * -x .git README.md *placeholder *.zip
-          cp ~/kernel/m31/arch/arm64/boot/Image .
-          cp ~/kernel/dtbo-m31.img dtbo
-          zip -r9 $ZIPNAME2 * -x .git README.md *placeholder *.zip
+          zip -r9 $ZIPNAME1 * -x .git README.md *.zip
+          cp ~/kernel/m21/arch/arm64/boot/Image .
+          cp ~/kernel/dtbo-m21.img dtbo
+          zip -r9 $ZIPNAME2 * -x .git README.md *.zip
+          cp ~/kernel/m31s/arch/arm64/boot/Image .
+          cp ~/kernel/dtbo-m31s.img dtbo
+          zip -r9 $ZIPNAME3 * -x .git README.md *.zip
 
-      # Upload to TG
+      # Upload to releases
       - name: Upload
-        env:
-          CHAT_ID: ${{ secrets.CHAT_ID }}
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }} 
         run: |
-          cd ~/AnyKernel3
-          for i in *.zip; do
-          curl -F chat_id=$CHAT_ID -F document=@$i -F parse_mode=markdown https://api.telegram.org/bot$BOT_TOKEN/sendDocument
-          done
+          curl -sL https://git.io/file-transfer | sh
+          ./transfer wet ~/KernelFlasher/*.zip
+
