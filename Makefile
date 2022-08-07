@@ -313,8 +313,8 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/x86/ -e s/x86_64/x86/ \
 ARCH		?= $(SUBARCH)
 CROSS_COMPILE	?= $(CONFIG_CROSS_COMPILE:"%"=%)
 
-export ANDROID_MAJOR_VERSION := r
-export PLATFORM_VERSION := 11
+export ANDROID_MAJOR_VERSION := s
+export PLATFORM_VERSION := 12
 
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
